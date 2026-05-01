@@ -26,24 +26,21 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
 
-      - name: Install Chromium (no snap)
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             libpq-dev \
             build-essential \
+            xvfb \
             curl \
-            wget \
-            unzip \
-            xvfb
+            unzip
 
-          # Install chromium-browser from PPA to avoid snap
-          sudo add-apt-repository ppa:xtradeb/apps -y
-          sudo apt-get update
-          sudo apt-get install -y chromium
-
-          # Verify install
-          chromium --version
+      - name: Install Chromium via setup-chrome action
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+        id: setup-chrome
 
       - name: Install Python dependencies
         run: pip install --no-cache-dir -r requirements.txt
@@ -57,8 +54,8 @@ jobs:
         run: python app.py
         env:
           DISPLAY: ":99"
-          CHROME_BIN: "/usr/bin/chromium"
-          CHROMEDRIVER_PATH: "/usr/bin/chromedriver"
+          CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
+          CHROMEDRIVER_PATH: "/usr/local/bin/chromedriver"
           SERVER_CONFIG: "True"
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_NAME: ${{ secrets.DB_NAME }}
