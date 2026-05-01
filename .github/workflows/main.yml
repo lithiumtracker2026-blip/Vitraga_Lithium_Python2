@@ -26,7 +26,7 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
 
-      - name: Install system dependencies
+      - name: Install Chromium (no snap)
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -35,9 +35,15 @@ jobs:
             curl \
             wget \
             unzip \
-            chromium \
-            chromium-driver \
             xvfb
+
+          # Install chromium-browser from PPA to avoid snap
+          sudo add-apt-repository ppa:xtradeb/apps -y
+          sudo apt-get update
+          sudo apt-get install -y chromium
+
+          # Verify install
+          chromium --version
 
       - name: Install Python dependencies
         run: pip install --no-cache-dir -r requirements.txt
